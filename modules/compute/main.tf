@@ -56,16 +56,6 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# Launch Template
-# data "template_file" "user_data" {
-#   template = file("${path.module}/user_data.sh")
-#   vars = {
-#     db_endpoint = var.db_endpoint
-#     db_name     = var.db_name
-#     db_username = var.db_username
-#     db_password = var.db_password
-#   }
-# }
 
 # Get the database secret from Secrets Manager
 data "aws_secretsmanager_secret" "database" {
@@ -76,28 +66,10 @@ data "aws_secretsmanager_secret_version" "database" {
   secret_id = data.aws_secretsmanager_secret.database.id
 }
 
-locals {
-  db_credentials = jsondecode(data.aws_secretsmanager_secret_version.database.secret_string)
+data "aws_kms_key" "secretsmanager_default" {
+  key_id = "alias/aws/secretsmanager"
 }
 
-# data "template_file" "user_data" {
-#   template = file("${path.module}/user_data.sh")
-#   vars = {
-#     db_endpoint = var.db_endpoint
-#     db_name     = var.db_name
-#     db_username = local.db_credentials.username
-#     db_password = local.db_credentials.password
-#   }
-# }
-
-data "template_file" "user_data" {
-  template = file("${path.module}/user_data.sh")
-  vars = {
-    db_endpoint = var.db_endpoint
-    db_name     = var.db_name
-    secret_arn  = var.database_secret_arn  
-  }
-}
 
 
 # IAM role for EC2 instances
@@ -119,24 +91,7 @@ resource "aws_iam_role" "ec2" {
 }
 
 # IAM policy for Secrets Manager access
-# resource "aws_iam_policy" "secrets_access" {
-#   name        = "${var.environment}-secrets-access"
-#   description = "Policy for accessing database secrets"
 
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action = [
-#           "secretsmanager:GetSecretValue",
-#           "secretsmanager:DescribeSecret"
-#         ]
-#         Effect   = "Allow"
-#         Resource = var.database_secret_arn
-#       }
-#     ]
-#   })
-# }
 
 resource "aws_iam_policy" "secrets_access" {
   name        = "${var.environment}-secrets-access"
@@ -152,18 +107,20 @@ resource "aws_iam_policy" "secrets_access" {
           "secretsmanager:ListSecrets"
         ]
         Effect   = "Allow"
-        Resource = "*"
+        Resource = var.database_secret_arn
       },
       {
         Action = [
           "kms:Decrypt"
         ]
         Effect   = "Allow"
-        Resource = "*"
+        Resource = data.aws_kms_key.secretsmanager_default.arn
+
       }
     ]
   })
 }
+
 
 # Attach policies to role
 resource "aws_iam_role_policy_attachment" "secrets_access" {
@@ -199,7 +156,9 @@ resource "aws_launch_template" "main" {
     security_groups             = [var.web_security_group_id]
   }
   
-  user_data = base64encode(data.template_file.user_data.rendered)
+  # user_data = base64encode(data.template_file.user_data.rendered)
+  user_data = base64encode(var.user_data)
+
   
   tag_specifications {
     resource_type = "instance"

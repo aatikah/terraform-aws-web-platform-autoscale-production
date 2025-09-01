@@ -85,3 +85,9 @@ variable "key_name" {
   type        = string
   default     = null
 }
+
+variable "user_data" {
+  description = "User data script for EC2 instances"
+  type        = string
+  default     = ""
+}

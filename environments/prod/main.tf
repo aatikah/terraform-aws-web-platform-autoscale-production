@@ -1,4 +1,14 @@
-# Add the secrets module
+# Read user_data from file at root level
+data "template_file" "user_data" {
+  template = file("${path.module}/user_data.sh")
+  vars = {
+    db_endpoint = module.database.db_endpoint
+    db_name     = module.database.db_name
+    secret_arn  = module.secrets.database_secret_arn
+  }
+}
+
+# Secrets module
 module "secrets" {
   source = "../../modules/secrets"
   
@@ -6,6 +16,7 @@ module "secrets" {
   database_name = "webappdb"
 }
 
+# Networking module
 module "networking" {
   source = "../../modules/networking"
   
@@ -16,7 +27,7 @@ module "networking" {
   availability_zones   = ["us-east-1a", "us-east-1b"]
 }
 
-
+# Database module
 module "database" {
   source = "../../modules/database"
   
@@ -30,9 +41,10 @@ module "database" {
   skip_final_snapshot       = false
   deletion_protection    = true
   backup_retention_period   = 14
+  depends_on = [module.secrets]
 }
 
-
+# Compute module
 module "compute" {
   source = "../../modules/compute"
   
@@ -50,8 +62,10 @@ module "compute" {
   max_size               = 10
   desired_capacity       = 3
   key_name               = null
+  user_data = data.template_file.user_data.rendered
 }
 
+# Monitoring module
 module "monitoring" {
   source = "../../modules/monitoring"
   
