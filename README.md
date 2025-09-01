@@ -146,36 +146,37 @@ terraform-web-platform/
 ├── .gitignore                    # Git ignore rules
 ├── README.md                     # This file
 ├── environments/                 # Environment-specific configurations
-│   ├── dev/                     # Development environment
-│   │   ├── main.tf              # Main configuration calling modules
-│   │   ├── variables.tf         # Variable definitions
-│   │   ├── outputs.tf           # Output values
-│   │   ├── provider.tf          # Provider and backend config
-│   │   └── terraform.tfvars     # Variable values
-│   └── prod/                    # Production environment
+│   ├── dev/                      # Development environment
+│   │   ├── main.tf               # Main configuration calling modules
+│   │   ├── variables.tf          # Variable definitions
+│   │   ├── outputs.tf            # Output values
+│   │   ├── provider.tf           # Provider and backend config
+│   │   ├── terraform.tfvars      # Variable values
+│   │   └── user_data.sh          # EC2 initialization script
+│   └── prod/                     # Production environment
 │       └── (similar structure)
-└── modules/                     # Reusable Terraform modules
-    ├── networking/              # VPC, Subnets, Security Groups
+└── modules/                      # Reusable Terraform modules
+    ├── networking/               # VPC, Subnets, Security Groups
     │   ├── main.tf
     │   ├── variables.tf
     │   └── outputs.tf
-    ├── compute/                 # ALB, ASG, Launch Templates
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   ├── outputs.tf
-    │   └── user_data.sh        # EC2 initialization script
-    ├── database/                # RDS MySQL
+    ├── compute/                  # ALB, ASG, Launch Templates
     │   ├── main.tf
     │   ├── variables.tf
     │   └── outputs.tf
-    ├── secrets/                 # AWS Secrets Manager
+    ├── database/                 # RDS MySQL
     │   ├── main.tf
     │   ├── variables.tf
     │   └── outputs.tf
-    └── monitoring/              # CloudWatch, SNS
+    ├── secrets/                  # AWS Secrets Manager
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    └── monitoring/               # CloudWatch, SNS
         ├── main.tf
         ├── variables.tf
         └── outputs.tf
+
 ```
 
 ## 🚀 Quick Start
@@ -183,7 +184,7 @@ terraform-web-platform/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/terraform-web-platform.git
+git clone https://github.com/aatikah/terraform-aws-web-platform-autoscale-production.git
 cd terraform-web-platform
 ```
 
